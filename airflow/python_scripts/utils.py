@@ -1,5 +1,6 @@
 import string
 import re
+import pandas as pd
 
 def clean_company_name(name):
     """
@@ -28,3 +29,18 @@ def determine_type(row):
         return row['crdr']
     else:
         return row['datatype']
+    
+def fill_na_with_na(df, columns, default_str='N/A', default_int=-1):
+    for column in columns:
+        if pd.api.types.is_numeric_dtype(df[column]):
+            df[column] = df[column].fillna(default_int)
+        else:
+            df[column] = df[column].fillna(default_str)
+    return df
+
+def clean_dataframe(df, columns):
+    """
+    Cleans the DataFrame by dropping rows where any value in the specified columns from given list is missing.
+    """
+    cleaned_df = df.dropna(subset=columns)
+    return cleaned_df
