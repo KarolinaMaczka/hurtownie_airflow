@@ -1,14 +1,14 @@
 import pandas as pd
 import numpy as np
-from utils import clean_company_name
+from utils import clean_company_name, determine_type
 
 def transform_fin_statements(folder_name):
     df_num = pd.read_csv(f"./airflow/data/2023q4/num.txt", sep='\t')
     df_sub = pd.read_csv(f"./airflow/data/2023q4/sub.txt", sep='\t')
     df_tag = pd.read_csv(f"./airflow/data/2023q4/tag.txt", sep='\t')
-    # create_statement_dim(df_sub)
-    # create_financial_statement_item_fact_dim(df_sub, df_num)
-    # create_tag_dim(df_tag)
+    create_statement_dim(df_sub)
+    create_financial_statement_item_fact_dim(df_sub, df_num)
+    create_tag_dim(df_tag)
     create_company_dim(df_sub)
     
 
@@ -74,13 +74,7 @@ def create_tag_dim(df_tag):
     tag_dim = df_tag[['tag', 'version', 'tlabel', 'datatype', 'crdr', 'abstract']]
     tag_dim = tag_dim.assign(tagId = tag_dim['tag'] + tag_dim['version'])
     tag_dim.rename(columns={'tag': 'tag', 'version': 'version', 'tlabel': 'tagDescription'}, inplace=True)
-    def determine_type(row):
-        if row['abstract'] == 1:
-            return 'abstract'
-        elif row['datatype'] == 'monetary':
-            return row['crdr']
-        else:
-            return row['datatype']
+    
     tag_dim = tag_dim.assign(type=tag_dim.apply(determine_type, axis=1))
     tag_dim = tag_dim[['tagId', 'tag', 'version', 'tagDescription', 'type']]
     tag_dim.to_csv('./airflow/clean_data/tags.csv', index=False)

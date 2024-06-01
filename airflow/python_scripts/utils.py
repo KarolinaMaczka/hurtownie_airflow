@@ -20,3 +20,11 @@ def clean_company_name(name):
     name = ' '.join(name.split())
     
     return name
+
+def determine_type(row):
+    if row['abstract'] == 1:
+        return 'abstract'
+    elif row['datatype'] == 'monetary':
+        return row['crdr']
+    else:
+        return row['datatype']
