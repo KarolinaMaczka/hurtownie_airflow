@@ -1,0 +1,19 @@
+[2024-06-02T02:16:42.955+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-06-02T02:16:43.081+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: welcome_dag.print_welcome scheduled__2024-05-31T23:00:00+00:00 [queued]>
+[2024-06-02T02:16:43.108+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: welcome_dag.print_welcome scheduled__2024-05-31T23:00:00+00:00 [queued]>
+[2024-06-02T02:16:43.109+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-06-02T02:16:43.167+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): print_welcome> on 2024-05-31 23:00:00+00:00
+[2024-06-02T02:16:43.184+0000] {logging_mixin.py:188} WARNING - /home/airflow/.local/lib/python3.12/site-packages/airflow/task/task_runner/standard_task_runner.py:61 DeprecationWarning: This process (pid=1490) is multi-threaded, use of fork() may lead to deadlocks in the child.
+[2024-06-02T02:16:43.182+0000] {standard_task_runner.py:90} INFO - Running: ['airflow', 'tasks', 'run', 'welcome_dag', 'print_welcome', 'scheduled__2024-05-31T23:00:00+00:00', '--job-id', '83', '--raw', '--subdir', 'DAGS_FOLDER/welcome_dag.py', '--cfg-path', '/tmp/tmpvj7o9mkc']
+[2024-06-02T02:16:43.185+0000] {standard_task_runner.py:63} INFO - Started process 1497 to run task
+[2024-06-02T02:16:43.186+0000] {standard_task_runner.py:91} INFO - Job 83: Subtask print_welcome
+[2024-06-02T02:16:43.248+0000] {logging_mixin.py:188} WARNING - /home/airflow/.local/lib/python3.12/site-packages/airflow/settings.py:195 DeprecationWarning: The sql_alchemy_conn option in [core] has been moved to the sql_alchemy_conn option in [database] - the old setting has been used, but please update your config.
+[2024-06-02T02:16:43.421+0000] {task_command.py:426} INFO - Running <TaskInstance: welcome_dag.print_welcome scheduled__2024-05-31T23:00:00+00:00 [running]> on host 30669b57ae45
+[2024-06-02T02:16:43.828+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='airflow' AIRFLOW_CTX_DAG_ID='welcome_dag' AIRFLOW_CTX_TASK_ID='print_welcome' AIRFLOW_CTX_EXECUTION_DATE='2024-05-31T23:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-05-31T23:00:00+00:00'
+[2024-06-02T02:16:43.830+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-06-02T02:16:43.870+0000] {logging_mixin.py:188} INFO - Welcome to Airflow!
+[2024-06-02T02:16:43.871+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-06-02T02:16:43.873+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-06-02T02:16:43.954+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=welcome_dag, task_id=print_welcome, run_id=scheduled__2024-05-31T23:00:00+00:00, execution_date=20240531T230000, start_date=20240602T021643, end_date=20240602T021643
+[2024-06-02T02:16:44.045+0000] {local_task_job_runner.py:240} INFO - Task exited with return code 0
+[2024-06-02T02:16:44.120+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

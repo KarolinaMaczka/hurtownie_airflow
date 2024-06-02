@@ -1,0 +1,73 @@
+[2024-06-02T02:16:43.792+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-06-02T02:16:43.931+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: complaints_dag_id.transform_complaints_task scheduled__2024-06-01T00:00:00+00:00 [queued]>
+[2024-06-02T02:16:43.965+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: complaints_dag_id.transform_complaints_task scheduled__2024-06-01T00:00:00+00:00 [queued]>
+[2024-06-02T02:16:43.968+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 6
+[2024-06-02T02:16:44.016+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): transform_complaints_task> on 2024-06-01 00:00:00+00:00
+[2024-06-02T02:16:44.030+0000] {logging_mixin.py:188} WARNING - /home/airflow/.local/lib/python3.12/site-packages/airflow/task/task_runner/standard_task_runner.py:61 DeprecationWarning: This process (pid=1491) is multi-threaded, use of fork() may lead to deadlocks in the child.
+[2024-06-02T02:16:44.029+0000] {standard_task_runner.py:90} INFO - Running: ['airflow', 'tasks', 'run', 'complaints_dag_id', 'transform_complaints_task', 'scheduled__2024-06-01T00:00:00+00:00', '--job-id', '84', '--raw', '--subdir', 'DAGS_FOLDER/complaints_dag.py', '--cfg-path', '/tmp/tmpvzp4whxy']
+[2024-06-02T02:16:44.032+0000] {standard_task_runner.py:63} INFO - Started process 1498 to run task
+[2024-06-02T02:16:44.032+0000] {standard_task_runner.py:91} INFO - Job 84: Subtask transform_complaints_task
+[2024-06-02T02:16:44.093+0000] {logging_mixin.py:188} WARNING - /home/airflow/.local/lib/python3.12/site-packages/airflow/settings.py:195 DeprecationWarning: The sql_alchemy_conn option in [core] has been moved to the sql_alchemy_conn option in [database] - the old setting has been used, but please update your config.
+[2024-06-02T02:16:44.261+0000] {task_command.py:426} INFO - Running <TaskInstance: complaints_dag_id.transform_complaints_task scheduled__2024-06-01T00:00:00+00:00 [running]> on host 30669b57ae45
+[2024-06-02T02:16:44.960+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='myowner' AIRFLOW_CTX_DAG_ID='complaints_dag_id' AIRFLOW_CTX_TASK_ID='transform_complaints_task' AIRFLOW_CTX_EXECUTION_DATE='2024-06-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-06-01T00:00:00+00:00'
+[2024-06-02T02:16:44.962+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-06-02T07:47:30.909+0000] {logging_mixin.py:188} INFO - creating statement_dim
+[2024-06-02T07:47:31.201+0000] {logging_mixin.py:188} INFO - creating financial_statement_item_fact_dim
+[2024-06-02T07:48:02.981+0000] {local_task_job_runner.py:310} WARNING - State of this instance has been externally set to up_for_retry. Terminating instance.
+[2024-06-02T07:48:02.984+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
+[2024-06-02T07:48:02.994+0000] {process_utils.py:132} INFO - Sending 15 to group 1498. PIDs of all processes in the group: [1498]
+[2024-06-02T07:48:02.995+0000] {process_utils.py:87} INFO - Sending the signal 15 to group 1498
+[2024-06-02T07:48:02.996+0000] {taskinstance.py:2611} ERROR - Received SIGTERM. Terminating subprocesses.
+[2024-06-02T07:48:03.007+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-06-02T07:48:03.143+0000] {taskinstance.py:2905} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 465, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 432, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/baseoperator.py", line 400, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/operators/python.py", line 235, in execute
+    return_value = self.execute_callable()
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/operators/python.py", line 252, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/airflow/dags/complaints_dag.py", line 20, in run_transform_fin_statements
+    return transform_fin_statements("2023q4")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/airflow/dags/python_scripts/transform_financial_statements.py", line 9, in transform_fin_statements
+    create_financial_statement_item_fact_dim(df_sub, df_num)
+  File "/opt/airflow/dags/python_scripts/transform_financial_statements.py", line 75, in create_financial_statement_item_fact_dim
+    fact_item['companyName'] = fact_item['companyName'].apply(clean_company_name)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/pandas/core/series.py", line 4764, in apply
+    ).apply()
+      ^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/pandas/core/apply.py", line 1209, in apply
+    return self.apply_standard()
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/pandas/core/apply.py", line 1289, in apply_standard
+    mapped = obj._map_values(
+             ^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/pandas/core/base.py", line 921, in _map_values
+    return algorithms.map_array(arr, mapper, na_action=na_action, convert=convert)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/pandas/core/algorithms.py", line 1814, in map_array
+    return lib.map_infer(values, mapper, convert=convert)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "lib.pyx", line 2926, in pandas._libs.lib.map_infer
+  File "/opt/airflow/dags/python_scripts/utils.py", line 18, in clean_company_name
+    name = re.sub(r'\b' + suffix + r'\b', '', name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/re/__init__.py", line 186, in sub
+    return _compile(pattern, flags).sub(repl, string, count)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 2613, in signal_handler
+    raise AirflowTaskTerminated("Task received SIGTERM signal")
+airflow.exceptions.AirflowTaskTerminated: Task received SIGTERM signal
+[2024-06-02T07:48:03.210+0000] {taskinstance.py:1206} INFO - Marking task as UP_FOR_RETRY. dag_id=complaints_dag_id, task_id=transform_complaints_task, run_id=scheduled__2024-06-01T00:00:00+00:00, execution_date=20240601T000000, start_date=20240602T021643, end_date=20240602T074803
+[2024-06-02T07:48:03.410+0000] {process_utils.py:80} INFO - Process psutil.Process(pid=1498, status='terminated', exitcode=2, started='02:16:43') (1498) terminated with exit code 2

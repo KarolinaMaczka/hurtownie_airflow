@@ -1,0 +1,23 @@
+[2024-06-01T19:44:41.745+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-06-01T19:44:41.853+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: complaints_dag_id.transform_complaints_task scheduled__2024-05-29T00:00:00+00:00 [queued]>
+[2024-06-01T19:44:41.869+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: complaints_dag_id.transform_complaints_task scheduled__2024-05-29T00:00:00+00:00 [queued]>
+[2024-06-01T19:44:41.870+0000] {taskinstance.py:2306} INFO - Starting attempt 4 of 6
+[2024-06-01T19:44:41.920+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): transform_complaints_task> on 2024-05-29 00:00:00+00:00
+[2024-06-01T19:44:41.934+0000] {logging_mixin.py:188} WARNING - /home/airflow/.local/lib/python3.12/site-packages/airflow/task/task_runner/standard_task_runner.py:61 DeprecationWarning: This process (pid=418) is multi-threaded, use of fork() may lead to deadlocks in the child.
+[2024-06-01T19:44:41.933+0000] {standard_task_runner.py:90} INFO - Running: ['airflow', 'tasks', 'run', 'complaints_dag_id', 'transform_complaints_task', 'scheduled__2024-05-29T00:00:00+00:00', '--job-id', '62', '--raw', '--subdir', 'DAGS_FOLDER/complaints_dag.py', '--cfg-path', '/tmp/tmp2z4ull57']
+[2024-06-01T19:44:41.935+0000] {standard_task_runner.py:63} INFO - Started process 431 to run task
+[2024-06-01T19:44:41.935+0000] {standard_task_runner.py:91} INFO - Job 62: Subtask transform_complaints_task
+[2024-06-01T19:44:41.983+0000] {logging_mixin.py:188} WARNING - /home/airflow/.local/lib/python3.12/site-packages/airflow/settings.py:195 DeprecationWarning: The sql_alchemy_conn option in [core] has been moved to the sql_alchemy_conn option in [database] - the old setting has been used, but please update your config.
+[2024-06-01T19:44:42.086+0000] {task_command.py:426} INFO - Running <TaskInstance: complaints_dag_id.transform_complaints_task scheduled__2024-05-29T00:00:00+00:00 [running]> on host 30669b57ae45
+[2024-06-01T19:44:43.284+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='myowner' AIRFLOW_CTX_DAG_ID='complaints_dag_id' AIRFLOW_CTX_TASK_ID='transform_complaints_task' AIRFLOW_CTX_EXECUTION_DATE='2024-05-29T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='4' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-05-29T00:00:00+00:00'
+[2024-06-01T19:44:43.285+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-06-01T19:44:51.724+0000] {logging_mixin.py:188} INFO - creating statement_dim
+[2024-06-01T19:44:51.974+0000] {logging_mixin.py:188} INFO - creating financial_statement_item_fact_dim
+[2024-06-01T19:46:05.812+0000] {logging_mixin.py:188} INFO - creating tag_dim
+[2024-06-01T19:46:08.399+0000] {logging_mixin.py:188} INFO - creating company_dim
+[2024-06-01T19:46:09.513+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-06-01T19:46:09.516+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-06-01T19:46:09.557+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=complaints_dag_id, task_id=transform_complaints_task, run_id=scheduled__2024-05-29T00:00:00+00:00, execution_date=20240529T000000, start_date=20240601T194441, end_date=20240601T194609
+[2024-06-01T19:46:09.656+0000] {local_task_job_runner.py:240} INFO - Task exited with return code 0
+[2024-06-01T19:46:09.760+0000] {taskinstance.py:3498} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-06-01T19:46:09.763+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
