@@ -1,0 +1,33 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: hurtownie-airflow-db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./hurtownie-airflow-db:/var/lib/postgresql/data
+
+  sleek-airflow:
+    image: hurtownie-airflow:latest
+    volumes:
+      - ./airflow:/opt/airflow
+    ports:
+      - "8080:8080"
+    environment:
+      - AIRFLOW__CORE__FERNET_KEY=RpunV7N6-33k2MqgXs0ssNJl82mkLtH3LfvzXpyKe1s=
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://admin:admin@postgres:5432/hurtownie-airflow-db
+    command:
+      - bash
+      - -c
+      - |
+        airflow db migrate
+        airflow connections create-default-connections
+        airflow scheduler & airflow webserver --port 8080
+
+

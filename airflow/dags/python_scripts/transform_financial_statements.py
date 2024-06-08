@@ -2,9 +2,10 @@ import pandas as pd
 from python_scripts.utils import clean_company_name, determine_type, fill_na_with_na, clean_dataframe
 
 def transform_fin_statements(folder_name):
-    df_num = pd.read_csv(f"/opt/airflow/data/2023q4/num.txt", sep='\t')
-    df_sub = pd.read_csv(f"/opt/airflow/data/2023q4/sub.txt", sep='\t')
-    df_tag = pd.read_csv(f"/opt/airflow/data/2023q4/tag.txt", sep='\t')
+    print(folder_name)
+    df_num = pd.read_csv(f"/opt/airflow/data/{folder_name}/num.txt", sep='\t')
+    df_sub = pd.read_csv(f"/opt/airflow/data/{folder_name}/sub.txt", sep='\t')
+    df_tag = pd.read_csv(f"/opt/airflow/data/{folder_name}/tag.txt", sep='\t')
     create_statement_dim(df_sub)
     create_financial_statement_item_fact_dim(df_sub, df_num)
     create_tag_dim(df_tag)
@@ -25,12 +26,17 @@ def create_statement_dim(df_sub):
     statement_dim = fill_na_with_na(statement_dim, ["fy", "fp"], default_str="N/A")
     statement_dim = statement_dim.rename(columns={"adsh": "statementId", "fy":"fiscalYear", "fp":"fiscalPeriod", "form":"formType", "period":"balanceSheetDateId","filed":"filledDateId","accepted":"acceptedDateId", "prevrpt":"previousReport", "nciks":"numberCIK"})
     statement_dim = statement_dim[statement_dim["formType"].isin(['10-Q', '10-K','8-K', '6-K', '20-F', 'DEF 14A', '8-K/A, 10-Q/A, 10-K/A', '20-F/A', '40-F', '6-K/A'])]
-    statement_dim["balanceSheetDateId"] = statement_dim["balanceSheetDateId"].fillna("00010101")
+    statement_dim["balanceSheetDateId"] = statement_dim["balanceSheetDateId"].fillna("10000101")
+    statement_dim = fill_na_with_na(statement_dim, ["acceptedDateId"], default_int=99991231, default_str='99991231')
     statement_dim["acceptedDateId"] = pd.to_datetime(statement_dim['acceptedDateId']).dt.date
     acc_date_str = statement_dim['acceptedDateId'].values.astype('datetime64[D]').astype(str)
     statement_dim['acceptedDateId'] = pd.Series(acc_date_str).str.replace('-', '')
+    statement_dim["acceptedDateId"] = statement_dim["acceptedDateId"].replace('', '99991231')
     statement_dim["balanceSheetDateId"] = statement_dim["balanceSheetDateId"].astype('Int64')
+    statement_dim["acceptedDateId"] = statement_dim["acceptedDateId"].astype('Int64')
     statement_dim['fiscalYear'] = statement_dim['fiscalYear'].astype('Int64')
+    statement_dim = fill_na_with_na(statement_dim, ["acceptedDateId"], default_int=99991231, default_str='99991231')
+    print(statement_dim["acceptedDateId"].unique())
     statement_dim.to_csv('/opt/airflow/clean_data/statement_dim.csv', index=False)
 
 def create_financial_statement_item_fact_dim(df_sub, df_num):
@@ -50,7 +56,8 @@ def create_financial_statement_item_fact_dim(df_sub, df_num):
     fact_item = fill_na_with_na(fact_item, ["coreg"], default_str="consolidated")
 
     fact_item = fact_item[fact_item["form"].isin(['10-Q', '10-K','8-K', '6-K', '20-F', 'DEF 14A', '8-K/A, 10-Q/A, 10-K/A', '20-F/A', '40-F', '6-K/A'])]
-    fact_item['endDateId'] = pd.to_datetime(fact_item['ddate'], format='%Y%m%d')
+    fact_item['endDateId'] = pd.to_datetime(fact_item['ddate'], format='%Y%m%d', errors='coerce')
+    fact_item = fact_item.dropna(subset=['endDateId'])
     form_months = {
         '10-Q': 3,
         '6-K': 6,
@@ -114,7 +121,8 @@ def create_company_dim(df_sub):
         'stprinc': 'stateRegistered',
         'baph': 'companyPhoneNumber',
         'cik':"CIK",
-        'changed': 'startDate'
+        'changed': 'startDate',
+        'former': 'formerName'
     })
 
     company_dim = clean_dataframe(company_dim, ["companyName", "CIK"])
@@ -123,7 +131,6 @@ def create_company_dim(df_sub):
         'zipCode', 'street', 'street2', 'countryRegistered', 'stateRegistered', 'companyPhoneNumber'
     ]
     company_dim = fill_na_with_na(company_dim, columns_to_fill)
-
     company_dim['countryRegistered'] = company_dim['countryRegistered'].fillna('N/A')
     company_dim['stateRegistered'] = company_dim['stateRegistered'].fillna('N/A')
     company_dim['companyPhoneNumber'] = company_dim['companyPhoneNumber'].fillna('N/A')
@@ -131,12 +138,12 @@ def create_company_dim(df_sub):
     company_dim['companyPhoneNumber'] = company_dim['companyPhoneNumber'].apply(lambda x: f'{x[:3]}-{x[3:6]}-{x[6:9]}' if x != 'N/A' else x)
     company_dim['endDate'] = '99991231'
     company_dim = company_dim[['companyName', 'industry', 'countryName', 'stateName', 
-                               'cityName','zipCode','street','street2', 'countryRegistered','stateRegistered','companyPhoneNumber', 'CIK', "startDate", 'endDate']]
+                               'cityName','zipCode','street','street2', 'countryRegistered','stateRegistered','companyPhoneNumber', 'CIK', "startDate", 'endDate', 'formerName']]
     company_dim['industry'] = company_dim['industry'].astype('Int64')
-    company_dim['startDate'] = company_dim['startDate'].fillna(int("00010101")).astype(str).str.replace(r'\.0$', '', regex=True).astype('Int64')
+    company_dim['startDate'] = company_dim['startDate'].fillna(int("10000101")).astype(str).str.replace(r'\.0$', '', regex=True).astype('Int64')
     company_dim['companyName'] = company_dim['companyName'].apply(clean_company_name)
     company_dim["companyId"] = company_dim["companyName"].str.replace(' ', '', regex=False) + company_dim["startDate"].astype(str)
-
+    company_dim['isActive'] = True
     company_dim.to_csv('/opt/airflow/clean_data/company_dim.csv', index=False)
 
 if __name__=='__main__':

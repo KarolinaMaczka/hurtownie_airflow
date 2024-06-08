@@ -16,6 +16,7 @@ dag = DAG(
     default_args=default_args,
     description='Create and populate date_dim table',
     schedule_interval='@once',
+    start_date=datetime(2023, 6, 1),
 )
 
 # Step 2: Generate Date Dimension Data in Python
@@ -56,7 +57,7 @@ def create_date_dim_table():
     pg_hook.run(create_table_query)
 
 def populate_date_dim_table():
-    pg_hook = PostgresHook(postgres_conn_id='your_postgres_connection_id')
+    pg_hook = PostgresHook(postgres_conn_id='postgres-baza')
     date_dim_df = create_date_dim('2000-01-01', '2100-12-31')
 
     # Insert data into the date_dim table
