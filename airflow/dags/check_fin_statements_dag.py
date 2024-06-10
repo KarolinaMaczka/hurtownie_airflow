@@ -40,6 +40,7 @@ def check_last_dag_run_status(session=None, **kwargs):
     dag_run = session.query(DagRun).filter(DagRun.dag_id == dag_id).order_by(DagRun.execution_date.desc()).first()
     print(f'Last dag run date: {dag_run.execution_date}')
     if dag_run and dag_run.state == 'success':
+        kwargs['ti'].xcom_push(key='execution_date', value=dag_run.execution_date)
         return 'proceed_with_tasks'
     else:
         return 'skip_tasks'
@@ -153,11 +154,12 @@ def insert_company_dim_data(**kwargs):
     df_company.fillna("NA", inplace=True)
 
     # Prepare current date for updates
-    today = datetime.now().strftime('%Y%m%d')
-    three_months_ago = (datetime.now() - timedelta(days=90)).strftime('%Y%m%d')
-    # execution_date = datetime.strptime(execution_date, '%Y-%m-%d')
-    # today = execution_date.strftime('%Y%m%d')
-    # three_months_ago = (execution_date - timedelta(days=93)).strftime('%Y%m%d')
+    # today = datetime.now().strftime('%Y%m%d')
+    # three_months_ago = (datetime.now() - timedelta(days=90)).strftime('%Y%m%d')
+    
+    execution_date = kwargs['ti'].xcom_pull(key='execution_date', task_ids='check_last_dag_run_status')
+    today = execution_date.strftime('%Y%m%d')  
+    three_months_ago = (execution_date - timedelta(days=93)).strftime('%Y%m%d')
     
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -424,16 +426,16 @@ def insert_fact_item_data(**kwargs):
         if fact_item_data:
             cursor.execute("""
                 SELECT statementId, companyId, tagId, companyName, coregistrantName, value, unitOfMeasure, form, endDateId, startDateId
-                FROM fact_item
+                FROM finanacial_statement_fact
             """)
             existing_fact_items = {tuple(row) for row in cursor.fetchall()}
 
         fact_item_data = [item for item in fact_item_data if tuple(item) not in existing_fact_items]
 
-        # Insert data into fact_item table
+        # Insert data into finanacial_statement_fact table
         if fact_item_data:
             execute_values(cursor, """
-                INSERT INTO fact_item (statementId, companyId, tagId, companyName, coregistrantName, value, unitOfMeasure, form, endDateId, startDateId)
+                INSERT INTO finanacial_statement_fact (statementId, companyId, tagId, companyName, coregistrantName, value, unitOfMeasure, form, endDateId, startDateId)
                 VALUES %s
             """, fact_item_data)
 
