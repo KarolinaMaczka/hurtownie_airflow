@@ -1,0 +1,49 @@
+import pandas as pd
+from utils import clean_company_name, clean_dataframe
+
+def get_common_names(companies):
+    companies = clean_dataframe(companies, [])
+    companies = companies.applymap(clean_company_name)
+    return list(set(companies.iloc[:, 0]).intersection(set(companies.iloc[:, 1])))
+
+def process_large_csv(input_file, sub_file, output_file, chunk_size=1000):
+    complaint_chunks = []
+    sub_chunks = []
+    total_records = 0
+    
+    # Read the CSV file in chunks
+    df_complaints = pd.read_csv(input_file, chunksize=chunk_size, keep_default_na=False, na_values=['NA'])
+    df_sub = pd.read_csv(sub_file, sep='\t', chunksize=chunk_size, keep_default_na=False, na_values=['NA'])
+
+    for complaint_chunk, sub_chunk in zip(df_complaints, df_sub):
+        common_names = get_common_names(pd.concat([complaint_chunk['Company'], sub_chunk['name']], axis=1))
+        complaint_chunk['Company'] = complaint_chunk['Company'].apply(clean_company_name)
+        sub_chunk['name'] = sub_chunk['name'].apply(clean_company_name)
+        complaint_chunk = complaint_chunk[complaint_chunk['Company'].isin(common_names)]
+        sub_chunk = sub_chunk[sub_chunk['name'].isin(common_names)]
+        
+        complaint_chunks.append(complaint_chunk)
+        sub_chunks.append(sub_chunk)
+        
+        total_records += len(complaint_chunk)
+        if total_records >= 1000000:
+            break
+
+    df_complaints_concatenated = pd.concat(complaint_chunks)
+    df_sub_concatenated = pd.concat(sub_chunks)
+
+    trimmed_data = df_complaints_concatenated.iloc[:1000000]
+    
+    trimmed_data.to_csv(output_file, index=False)
+    
+    df_complaints_concatenated.to_csv('complaints_concatenated.csv', index=False)
+    df_sub_concatenated.to_csv('sub_concatenated.csv', index=False)
+
+    print(f"Number of complaints: {df_complaints_concatenated['Complaint ID'].count()}")
+    print(f"Number of subs: {df_sub_concatenated['cik'].count()}")
+
+input_file = 'C:/Users/karim/hurtownie/airflow/data/complaints/complaints.csv'
+sub_file = 'C:/Users/karim/hurtownie/airflow/data/2024q1/sub.txt'
+output_file = 'C:/Users/karim/hurtownie/airflow/data/complaints/complaints_short.csv'
+
+process_large_csv(input_file, sub_file, output_file)
