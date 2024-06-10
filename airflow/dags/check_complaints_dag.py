@@ -87,7 +87,7 @@ def insert_complaints_data(**kwargs):
             cursor.execute(query_get_company_cik, (company_name,))
             company_cik_result = cursor.fetchone()
         
-            if not company_cik_result:
+            if company_cik_result.empty:
                 print(f"No company found with the name: {company_name}")
                 continue
 
@@ -97,7 +97,7 @@ def insert_complaints_data(**kwargs):
             cursor.execute(query_get_active_record, (company_cik,))
             active_record_result = cursor.fetchone()
 
-            if active_record_result:
+            if not active_record_result.empty:
                 df_complaints_fact.at[i, 'companyId'] = active_record_result[0]
                 df_complaints_fact.at[i, 'companyName'] = active_record_result[1]
                 df_complaints_fact.at[i, 'industry'] = active_record_result[2]
@@ -106,10 +106,10 @@ def insert_complaints_data(**kwargs):
                 df_complaints_fact = df_complaints_fact[df_complaints_fact['companyName'] != row['companyName']]
                 print(f"No active company found with the CIK: {company_cik}")
         
-        if df_complaints_dim:
+        if not df_complaints_dim.empty:
             complaint_values = [tuple(row) for row in df_complaints_dim.to_numpy()]
             execute_values(cursor, query_complaints_dim, complaint_values)
-        if df_complaints_fact:
+        if not df_complaints_fact.empty:
             records = df_complaints_fact.to_records(index=False)
             fact_records_list = list(records)
             execute_values(cursor, query_insert, fact_records_list)
