@@ -7,7 +7,8 @@ def clean_company_name(name):
     Cleans a company name by converting it to uppercase, removing punctuation, typical company suffixes, and extra whitespace.
     """
     # Convert to uppercase
-    name = name.upper()
+    if type(name) == str:
+        name = name.upper()
 
     # Remove punctuation
     name = name.translate(str.maketrans('', '', string.punctuation))
@@ -42,5 +43,17 @@ def clean_dataframe(df, columns):
     """
     Cleans the DataFrame by dropping rows where any value in the specified columns from given list is missing.
     """
-    cleaned_df = df.dropna(subset=columns)
+    if columns:
+        cleaned_df = df.dropna(subset=columns)
+    else:
+        cleaned_df = df.dropna()
     return cleaned_df
+
+def replace_out_of_range_values(df, columns, min_val, max_val):
+    """
+    Replace values in the specified columns of the DataFrame that are outside the range [min_val, max_val].
+    Values greater than max_val are replaced with max_val, and values less than min_val are replaced with min_val.
+    """
+    for column in columns:
+        df[column] = df[column].apply(lambda x: max_val if x > max_val else (min_val if x < min_val else x))
+    return df
