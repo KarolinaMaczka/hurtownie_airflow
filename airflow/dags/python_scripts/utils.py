@@ -44,3 +44,12 @@ def clean_dataframe(df, columns):
     """
     cleaned_df = df.dropna(subset=columns)
     return cleaned_df
+
+def replace_out_of_range_values(df, columns, min_val, max_val):
+    """
+    Replace values in the specified columns of the DataFrame that are outside the range [min_val, max_val].
+    Values greater than max_val are replaced with max_val, and values less than min_val are replaced with min_val.
+    """
+    for column in columns:
+        df[column] = df[column].apply(lambda x: max_val if x > max_val else (min_val if x < min_val else x))
+    return df

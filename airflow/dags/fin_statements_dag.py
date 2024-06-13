@@ -33,7 +33,7 @@ def run_transform_fin_statements(execution_date=None, **kwargs):
                     execution_date = datetime.now()    
     else:
         if not execution_date:
-            execution_date = datetime.now()  # Use current date if no execution_date_str and no execution_date
+            execution_date = datetime.now() 
 
     year = execution_date.year
     month = execution_date.month

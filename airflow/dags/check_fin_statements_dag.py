@@ -20,7 +20,7 @@ dag = DAG(
     dag_id='check_fin_statements_dag',
     default_args=default_args,
     start_date=datetime(2024, 5, 14),
-    schedule_interval='0 0 1 */3 *',
+    schedule_interval='0 1 1 */3 *',
 )
 
 DB_CONN = {
@@ -40,6 +40,7 @@ def check_last_dag_run_status(session=None, **kwargs):
     dag_run = session.query(DagRun).filter(DagRun.dag_id == dag_id).order_by(DagRun.execution_date.desc()).first()
     print(f'Last dag run date: {dag_run.execution_date}')
     if dag_run and dag_run.state == 'success':
+        kwargs['ti'].xcom_push(key='execution_date', value=dag_run.execution_date)
         return 'proceed_with_tasks'
     else:
         return 'skip_tasks'
@@ -153,12 +154,13 @@ def insert_company_dim_data(**kwargs):
     df_company.fillna("NA", inplace=True)
 
     # Prepare current date for updates
-    today = datetime.now().strftime('%Y%m%d')
-    three_months_ago = (datetime.now() - timedelta(days=90)).strftime('%Y%m%d')
-    # execution_date = datetime.strptime(execution_date, '%Y-%m-%d')
-    # today = execution_date.strftime('%Y%m%d')
-    # three_months_ago = (execution_date - timedelta(days=93)).strftime('%Y%m%d')
+    # today = datetime.now().strftime('%Y%m%d')
+    # three_months_ago = (datetime.now() - timedelta(days=90)).strftime('%Y%m%d')
     
+    execution_date = kwargs['ti'].xcom_pull(key='execution_date', task_ids='check_last_dag_run_status')
+    today = execution_date.strftime('%Y%m%d')  
+    three_months_ago = (execution_date - timedelta(days=93)).strftime('%Y%m%d')
+
     conn = get_db_connection()
     cursor = conn.cursor()
     
@@ -198,8 +200,8 @@ def insert_company_dim_data(**kwargs):
             # Check if companyId exists
             cursor.execute("""
                 SELECT * FROM company_dim
-                WHERE companyId = %s
-            """, (companyId,))
+                WHERE companyname = %s
+            """, (row['companyName'],))
             existing_row = cursor.fetchone()
             col_names = [desc[0] for desc in cursor.description]
             
@@ -249,36 +251,38 @@ def insert_company_dim_data(**kwargs):
                     continue  # Skip inserting if data is the same
 
                 if filled_date <= int(existing_data['startdate']):
-                    # Find the least startDate of a company with the same name but bigger than the filledDate
+                    # Find the minimum startDate
                     cursor.execute("""
                         SELECT MIN(startdate) FROM company_dim
-                        WHERE companyname = %s AND startdate > %s
-                    """, (row['companyName'], filled_date))
+                        WHERE companyname = %s 
+                    """, (row['companyName'],))
                     min_start_date_row = cursor.fetchone()
                     
                     if min_start_date_row and min_start_date_row[0]:
                         min_start_date = str(min_start_date_row[0])
-                        # Insert historical row with startDate as filledDate and endDate as min_start_date
-                        row['startDate'] = filled_date
-                        row['endDate'] = min_start_date
-                        row['isActive'] = False
-                        row['companyId'] = f"{row['companyName'].replace(' ', '')}{filled_date}"
-                        new_companyId = hash_string_to_int(row['companyId'])
-                        row['companyId'] = new_companyId
-                        cursor.execute("""
-                            SELECT companyId FROM company_dim WHERE companyId = %s
-                        """, (new_companyId,))
-                        if cursor.fetchone():
-                            pass  
-                        else:
+                        if int(filled_date) < int(min_start_date):
+                            # Insert historical row with startDate as filledDate and endDate as min_start_date
+                            row['startDate'] = filled_date
+                            row['endDate'] = min_start_date
+                            row['isActive'] = False
+                            row['companyId'] = f"{row['companyName'].replace(' ', '')}{filled_date}"
+                            new_companyId = hash_string_to_int(row['companyId'])
+                            row['companyId'] = new_companyId
                             cursor.execute("""
-                                INSERT INTO company_dim (companyName, industry, countryName, stateName, cityName, zipCode, street, street2, countryRegistered, stateRegistered, companyPhoneNumber, CIK, startDate, endDate, companyId, isActive, formerName)
-                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                            """, (
-                                row['companyName'], row['industry'], row['countryName'], row['stateName'], row['cityName'], row['zipCode'], 
-                                row['street'], row['street2'], row['countryRegistered'], row['stateRegistered'], row['companyPhoneNumber'], 
-                                row['CIK'], row['startDate'], row['endDate'], new_companyId, row['isActive'], row['formerName']
-                            ))
+                                SELECT companyId FROM company_dim WHERE companyId = %s
+                            """, (new_companyId,))
+                            if cursor.fetchone():
+                                pass  
+                            else:
+                                # Insert new data with minimum active date
+                                cursor.execute("""
+                                    INSERT INTO company_dim (companyName, industry, countryName, stateName, cityName, zipCode, street, street2, countryRegistered, stateRegistered, companyPhoneNumber, CIK, startDate, endDate, companyId, isActive, formerName)
+                                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                """, (
+                                    row['companyName'], row['industry'], row['countryName'], row['stateName'], row['cityName'], row['zipCode'], 
+                                    row['street'], row['street2'], row['countryRegistered'], row['stateRegistered'], row['companyPhoneNumber'], 
+                                    row['CIK'], row['startDate'], row['endDate'], new_companyId, row['isActive'], row['formerName']
+                                ))
                 
                 # Check for overlapping periods
                 cursor.execute("""
@@ -316,35 +320,6 @@ def insert_company_dim_data(**kwargs):
                             WHERE companyId = %s AND endDate = %s
                         """, (filled_date, overlap_companyId, overlap_end))
                 
-                # # Update existing row's endDate
-                # cursor.execute("""
-                #     UPDATE company_dim
-                #     SET endDate = %s, isActive = False
-                #     WHERE companyId = %s AND endDate = '21001231'
-                # """, (filled_date, companyId))
-                
-                # # Update the row's startDate and create new companyId
-                # row['startDate'] = filled_date
-                # row['companyId'] = f"{row['companyName'].replace(' ', '')}{filled_date}"
-                # new_companyId = hash_string_to_int(row['companyId'])
-                # row['companyId'] = new_companyId
-                
-                # # Check if the new companyId already exists before insertion
-                # cursor.execute("""
-                #     SELECT companyId FROM company_dim WHERE companyId = %s
-                # """, (new_companyId,))
-                # if cursor.fetchone():
-                #     continue  # Skip inserting if new companyId already exists
-
-                # # Insert new row with updated startDate
-                # cursor.execute("""
-                #     INSERT INTO company_dim (companyName, industry, countryName, stateName, cityName, zipCode, street, street2, countryRegistered, stateRegistered, companyPhoneNumber, CIK, startDate, endDate, companyId, isActive, formerName)
-                #     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '21001231', %s, True, %s)
-                # """, (
-                #     row['companyName'], row['industry'], row['countryName'], row['stateName'], row['cityName'], row['zipCode'], 
-                #     row['street'], row['street2'], row['countryRegistered'], row['stateRegistered'], row['companyPhoneNumber'], 
-                #     row['CIK'], row['startDate'], new_companyId, row['formerName']
-                # ))
             else:
                 print(existing_row)
                 # Insert new row
@@ -424,16 +399,16 @@ def insert_fact_item_data(**kwargs):
         if fact_item_data:
             cursor.execute("""
                 SELECT statementId, companyId, tagId, companyName, coregistrantName, value, unitOfMeasure, form, endDateId, startDateId
-                FROM fact_item
+                FROM financial_statement_fact
             """)
             existing_fact_items = {tuple(row) for row in cursor.fetchall()}
 
         fact_item_data = [item for item in fact_item_data if tuple(item) not in existing_fact_items]
 
-        # Insert data into fact_item table
+        # Insert data into financial_statement_fact table
         if fact_item_data:
             execute_values(cursor, """
-                INSERT INTO fact_item (statementId, companyId, tagId, companyName, coregistrantName, value, unitOfMeasure, form, endDateId, startDateId)
+                INSERT INTO financial_statement_fact (statementId, companyId, tagId, companyName, coregistrantName, value, unitOfMeasure, form, endDateId, startDateId)
                 VALUES %s
             """, fact_item_data)
 

@@ -172,13 +172,6 @@ def create_company_dim(df_sub):
         'formerName'
     ]
     company_dim = fill_na_with_na(company_dim, columns_to_fill, default_str='NA')
-    # company_dim['countryRegistered'] = company_dim['countryRegistered'].fillna('NA')
-    # company_dim['stateRegistered'] = company_dim['stateRegistered'].fillna('NA')
-    # company_dim['companyPhoneNumber'] = company_dim['companyPhoneNumber'].fillna('NA')
-
-    # Ujednolicenie numeru telefonu
-    # company_dim['companyPhoneNumber'] = company_dim['companyPhoneNumber'].str.replace(r'\D', '', regex=True)
-    # company_dim['companyPhoneNumber'] = company_dim['companyPhoneNumber'].apply(lambda x: f'{x[:3]}-{x[3:6]}-{x[6:9]}' if x != 'NA' else x)
     
     # Daty 
     company_dim['endDate'] = '21001231'
