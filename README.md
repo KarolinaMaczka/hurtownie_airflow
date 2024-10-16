@@ -178,7 +178,7 @@ Jeśli oba wskazane DAGi zakończyły się pomyślnie, `check_last_dag_run_statu
 
 ### Przykładowe wizualizacje
 
-![image](https://github.com/user-attachments/assets/9214b7f9-cdd9-4db4-be32-a9af5520c509)
+![image](https://github.com/user-attachments/assets/f87f8a26-953d-48d4-b627-102af3ac91a6)
 
 ![image](https://github.com/user-attachments/assets/c17bc85f-82be-447e-9e89-701d7f9c7e66)
 
