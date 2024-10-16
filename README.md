@@ -35,8 +35,6 @@ Jeśli kolumna jest wyspecyfikowana jako `NOT NULL` (każda w przypadku tej hurt
 
 ## financial_statement_fact
 
-## financial_statement_fact
-
 | **Nazwa kolumny**         | **Typ**                         | **Skąd dane**                                | **Cel**                                             |
 |---------------------------|---------------------------------|----------------------------------------------|-----------------------------------------------------|
 | factitemid                | SERIAL, NOT NULL                | własna                                       | Klucz główny tej tabeli                             |
